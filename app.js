@@ -1,6 +1,7 @@
 import express from "express";
 import {} from "express-async-errors";
 import tweetsRouter from "./router/tweets.js";
+import authRouter from "./router/auth.js";
 import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
@@ -15,6 +16,7 @@ app.use(morgan("tiny"));
 app.use(cors());
 
 app.use("/tweets", tweetsRouter);
+app.use("/auth", authRouter);
 
 app.use((req, res, next) => {
   res.status(403).json({ msg: "Page Not Found" });

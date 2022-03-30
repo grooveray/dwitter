@@ -9,10 +9,14 @@ const validator = [
     .notEmpty()
     .withMessage("username is required")
     .trim()
-    .isLength({ min: 3, max: 20 })
-    .withMessage("please enter 3~4chractors"),
+    .isLength({ min: 2 })
+    .withMessage("username should be at least 2 characters"),
   body("name").notEmpty().withMessage("name is required").trim(),
-  body("text").notEmpty().withMessage("text is required"),
+  body("text")
+    .notEmpty()
+    .withMessage("text is required")
+    .isLength({ min: 3 })
+    .withMessage("text should be at least 3 characters"),
   body("email")
     .notEmpty()
     .withMessage("email is required")
