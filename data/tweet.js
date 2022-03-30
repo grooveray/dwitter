@@ -1,36 +1,49 @@
+import * as authRepository from "../data/auth.js";
+
 let tweets = [
   {
     id: "1",
-    username: "ray",
-    name: "Minhong",
     text: "min hong is good",
-    email: "minhong@naver.com",
-    url: "https://www.minhong.com",
+    userId: "1",
   },
   {
     id: "2",
-    username: "riddong",
-    name: "Riwoo",
     text: "riddong is great",
-    email: "riwoo@naver.com",
-    url: "https://www.riwoo.com",
+    userId: "2",
   },
 ];
 
 export async function getAll() {
-  return tweets; // return []
+  return Promise.all(
+    tweets.map(async (tweet) => {
+      const { username, name, email, password, url } =
+        await authRepository.findById(tweet.userId);
+      return { ...tweet, username, name, email, password, url };
+    })
+  );
+  // tweets = await tweets.map(async (tweet) => {
+  //   const { username, name, email, password, url } =
+  //     await authRepository.findById(tweet.userId);
+  //   return { ...tweet, username, name, email, password, url };
+  // });
+  // console.log(tweets);
+  // return tweets;
 }
 export async function getByUsername(username) {
-  const found = await tweets.filter((tweet) => tweet.username === username);
+  const found = getAll().then((tweets) =>
+    tweets.filter((tweet) => tweet.username === username)
+  );
   if (!username) return null;
   return found; // return []
 }
 export async function getById(id) {
-  const found = await tweets.find((tweet) => tweet.id === id);
+  const found = getAll().then((tweets) =>
+    tweets.find((tweet) => tweet.id === id)
+  );
   if (!found) return null;
   return found; // return {}
 }
-export async function create(username, name, text, email, url) {
+export async function create(userId, text) {
   const isMatchedId = async (intId) => {
     const id = intId.toString();
     const found = await tweets.find((tweet) => tweet.id === id);
@@ -41,17 +54,16 @@ export async function create(username, name, text, email, url) {
     : (tweets.length + 1).toString());
   const tweet = {
     id: nextId,
-    username,
-    name,
     text,
-    email,
-    url,
+    userId,
   };
   tweets.push(tweet);
   return tweet; // return {}
 }
 export async function update(id, text) {
-  const found = await tweets.find((tweet) => tweet.id === id);
+  const found = getAll().then((tweets) =>
+    tweets.find((tweet) => tweet.id === id)
+  );
   if (!found) return null;
   tweets = await tweets.map((tweet) =>
     tweet.id === id ? { ...tweet, text } : tweet
@@ -59,6 +71,8 @@ export async function update(id, text) {
   return tweets; //return []
 }
 export async function remove(id) {
-  tweets = await tweets.filter((tweet) => !(tweet.id === id));
+  tweets = getAll().then((tweets) =>
+    tweets.filter((tweet) => !(tweet.id === id))
+  );
   return;
 }

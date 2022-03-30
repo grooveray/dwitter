@@ -28,8 +28,9 @@ export async function getTweetById(req, res) {
   res.status(200).json(found);
 }
 export async function createTweet(req, res) {
-  const { username, name, text, email, url } = req.body;
-  const tweet = await tweetRepository.create(username, name, text, email, url);
+  // const { username, name, text, email, url } = req.body;
+  const { text } = req.body;
+  const tweet = await tweetRepository.create(req.userId, text);
   res.status(201).json(tweet);
 }
 export async function updateTweet(req, res) {
