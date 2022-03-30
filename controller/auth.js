@@ -5,9 +5,9 @@ import * as authRepository from "../data/auth.js";
 const saltRounds = 10;
 const secretKey = "012486abc";
 
-const createToken = async (user) => {
-  const { id, username } = user;
-  const token = await jwt.sign({ id, username }, secretKey, {
+const createToken = (user) => {
+  const { id } = user;
+  const token = jwt.sign({ id }, secretKey, {
     expiresIn: "2d",
   });
   if (!token) {
@@ -25,26 +25,17 @@ export async function signup(req, res, next) {
   if (isDuplicated)
     return res.status(401).json({ msg: `USERNAME ${username} is exists` });
 
-  const isMatchedId = async (intId) => {
-    const id = intId.toString();
-    const found = await authRepository.findById(id);
-    return !!found;
-  };
-  const auths = await authRepository.getAll();
-  const nextId = await (isMatchedId(auths.length + 1)
-    ? (parseInt(auths[auths.length - 1].id) + 1).toString()
-    : (auths.length + 1).toString());
   const hashed = await bcrypt.hash(password, saltRounds);
-  const auth = {
+
+  const auth = await authRepository.createUser(
     username,
     name,
     email,
-    password: hashed,
-    url,
-    id: nextId,
-  };
-  await auths.push(auth);
-  const token = await createToken(nextId);
+    hashed,
+    url
+  );
+  const token = createToken(auth);
+
   res.status(201).json({ username, token });
 }
 export async function login(req, res, next) {
@@ -59,6 +50,12 @@ export async function login(req, res, next) {
   const isPasswordMatched = await bcrypt.compare(password, user.password);
   if (!isPasswordMatched)
     return res.status(401).json({ msg: "inputs was wrong" });
-  const token = await createToken(user);
+  const token = createToken(user);
   res.status(200).json({ username, token });
+}
+export async function me(req, res, next) {
+  const { token, userId } = req;
+  const found = await authRepository.findById(userId);
+  if (!found) return res.status(403).json({ msg: "Authentication Error" });
+  res.status(200).json({ token, username: found.username });
 }

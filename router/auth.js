@@ -1,6 +1,7 @@
 import express from "express";
 import * as authController from "../controller/auth.js";
 import { body, validationResult } from "express-validator";
+import { isAuth } from "../middleware/auth.js";
 
 const route = express.Router();
 
@@ -44,6 +45,6 @@ const validator = [
 
 route.post("/signup", validator, authController.signup);
 route.post("/login", loginValidator, authController.login);
-route.get("/me");
+route.get("/me", isAuth, authController.me);
 
 export default route;
