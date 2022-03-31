@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import * as authRepository from "../data/auth.js";
+import config from "../config.js";
 
-const secretKey = "012486abc";
+const secretKey = config.jwt.secretKey;
 
 const AUTH_ERROR = { msg: "Authentication Error" };
 

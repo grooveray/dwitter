@@ -1,14 +1,18 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import * as authRepository from "../data/auth.js";
+import config from "../config.js";
 
-const saltRounds = 10;
-const secretKey = "012486abc";
+const saltRounds = config.bcrypt.saltRounds;
+const secretKey = config.jwt.secretKey;
+const expiresIn = config.jwt.expiresIn;
+
+console.log(config);
 
 const createToken = (user) => {
   const { id } = user;
   const token = jwt.sign({ id }, secretKey, {
-    expiresIn: "2d",
+    expiresIn,
   });
   if (!token) {
     return res.status(401).json({ msg: "cannot create token" });
