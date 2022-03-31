@@ -56,6 +56,7 @@ export async function create(userId, text) {
     id: nextId,
     text,
     userId,
+    createdAt: Date.now(),
   };
   tweets.push(tweet);
   return tweet; // return {}
