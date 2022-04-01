@@ -7,11 +7,8 @@ const saltRounds = config.bcrypt.saltRounds;
 const secretKey = config.jwt.secretKey;
 const expiresIn = config.jwt.expiresIn;
 
-console.log(config);
-
-const createToken = (user) => {
-  const { id } = user;
-  const token = jwt.sign({ id }, secretKey, {
+const createToken = (userId) => {
+  const token = jwt.sign({ userId }, secretKey, {
     expiresIn,
   });
   if (!token) {
@@ -31,14 +28,14 @@ export async function signup(req, res, next) {
 
   const hashed = await bcrypt.hash(password, saltRounds);
 
-  const auth = await authRepository.createUser(
+  const userId = await authRepository.createUser(
     username,
     name,
     email,
     hashed,
     url
   );
-  const token = createToken(auth);
+  const token = createToken(userId);
 
   res.status(201).json({ username, token });
 }
@@ -54,7 +51,7 @@ export async function login(req, res, next) {
   const isPasswordMatched = await bcrypt.compare(password, user.password);
   if (!isPasswordMatched)
     return res.status(401).json({ msg: "inputs was wrong" });
-  const token = createToken(user);
+  const token = createToken(user.id);
   res.status(200).json({ username, token });
 }
 export async function me(req, res, next) {

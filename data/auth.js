@@ -51,5 +51,5 @@ export async function createUser(username, name, email, password, url) {
     id: nextId,
   };
   auths.push(auth);
-  return auth;
+  return nextId;
 }
