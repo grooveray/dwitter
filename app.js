@@ -5,6 +5,7 @@ import authRouter from "./router/auth.js";
 import helmet from "helmet";
 import morgan from "morgan";
 import cors from "cors";
+import { connectDB } from "./database/database.js";
 
 const app = express();
 
@@ -27,6 +28,11 @@ app.use((err, req, res, next) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is Listening at PORT: ${port}..`);
-});
+connectDB()
+  .then((db) => {
+    console.log("MongoDB Connected..");
+    app.listen(port, () => {
+      console.log(`Server is Listening at PORT: ${port}..`);
+    });
+  })
+  .catch((e) => console.error(e));
