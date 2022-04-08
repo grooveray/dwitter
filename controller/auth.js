@@ -8,7 +8,7 @@ const secretKey = config.jwt.secretKey;
 const expiresIn = config.jwt.expiresIn;
 
 const createToken = (userId) => {
-  const token = jwt.sign({ userId }, secretKey, {
+  const token = jwt.sign({ id: userId }, secretKey, {
     expiresIn,
   });
   if (!token) {
