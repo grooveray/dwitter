@@ -2,18 +2,18 @@ import * as authRepository from "../data/auth.js";
 import { getTweets, getUsers } from "../database/database.js";
 import MongoDB from "mongodb";
 
-let tweets = [
-  {
-    id: "1",
-    text: "min hong is good",
-    userId: "1",
-  },
-  {
-    id: "2",
-    text: "riddong is great",
-    userId: "2",
-  },
-];
+// let tweets = [
+//   {
+//     id: "1",
+//     text: "min hong is good",
+//     userId: "1",
+//   },
+//   {
+//     id: "2",
+//     text: "riddong is great",
+//     userId: "2",
+//   },
+// ];
 
 export async function getAll() {
   return getTweets().find().sort({ createdAt: -1 }).toArray();
