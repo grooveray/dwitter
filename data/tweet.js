@@ -1,6 +1,6 @@
 import * as authRepository from "../data/auth.js";
-import MongoDB from "mongodb";
 import { getTweets, getUsers } from "../database/database.js";
+import MongoDB from "mongodb";
 
 // let tweets = [
 //   {
@@ -16,16 +16,14 @@ import { getTweets, getUsers } from "../database/database.js";
 // ];
 
 export async function getAll() {
-  const tweets = await getTweets().find().toArray();
-  const auths = await getUsers().find().toArray();
-
-  return tweets.map((tweet) => {
-    const auth = auths.find(
-      (auth) => tweet.userId.toString() === auth._id.toString()
-    );
-    return { ...auth, ...tweet, id: tweet._id.toString() };
-  });
-
+  return getTweets().find().sort({ createdAt: -1 }).toArray();
+  // return Promise.all(
+  //   tweets.map(async (tweet) => {
+  //     const { username, name, email, password, url } =
+  //       await authRepository.findById(tweet.userId);
+  //     return { ...tweet, username, name, email, password, url };
+  //   })
+  // );
   // tweets = await tweets.map(async (tweet) => {
   //   const { username, name, email, password, url } =
   //     await authRepository.findById(tweet.userId);
@@ -35,26 +33,38 @@ export async function getAll() {
   // return tweets;
 }
 export async function getByUsername(username) {
-  const found = getAll().then((tweets) =>
-    tweets.filter((tweet) => tweet.username === username)
-  );
-  if (!username) return null;
-  return found; // return []
+  return getTweets()
+    .find({ username })
+    .sort({ createdAt: -1 })
+    .toArray()
+    .then(mapUser);
+  // const found = getAll().then((tweets) =>
+  //   tweets.filter((tweet) => tweet.username === username)
+  // );
+  // if (!username) return null;
+  // return found; // return []
 }
 export async function getById(id) {
-  const found = getAll().then((tweets) =>
-    tweets.find((tweet) => tweet.id === id)
-  );
-  if (!found) return null;
-  return found; // return {}
+  return getTweets()
+    .findOne({ _id: new MongoDB.ObjectId(id) })
+    .then(mapOptionalUser);
+  // const found = getAll().then((tweets) =>
+  //   tweets.find((tweet) => tweet.id === id)
+  // );
+  // if (!found) return null;
+  // return found; // return {}
 }
 export async function create(userId, text) {
+  const { username, name, email, url } = await authRepository.findById(userId);
   const user = {
-    userId,
     text,
-    createdAt: Date.now(),
+    username,
+    name,
+    email,
+    url,
+    createdAt: new Date(),
   };
-  return await getTweets()
+  return getTweets()
     .insertOne(user)
     .then((data) => getById(data.insertedId.toString()));
   // const isMatchedId = async (intId) => {
@@ -69,26 +79,40 @@ export async function create(userId, text) {
   //   id: nextId,
   //   text,
   //   userId,
-  //   createdAt: Date.now(),
+  //   createdAt: new Date(),
   // };
   // tweets.push(tweet);
   // return tweet; // return {}
 }
 export async function update(id, text) {
-  const found = getAll().then((tweets) =>
-    tweets.find((tweet) => tweet.id === id)
-  );
-  if (!found) return null;
-
-  return await getTweets()
-    .updateOne({ _id: new MongoDB.ObjectId(id) }, { $set: { text } })
-    .then(() => getAll());
+  return getTweets()
+    .findOneAndUpdate(
+      { _id: new MongoDB.ObjectId(id) },
+      { $set: { text } },
+      { returnDocument: "after" }
+    )
+    .then((data) => mapOptionalUser(data.value));
+  // const found = getAll().then((tweets) =>
+  //   tweets.find((tweet) => tweet.id === id)
+  // );
+  // if (!found) return null;
+  // tweets = await tweets.map((tweet) =>
+  //   tweet.id === id ? { ...tweet, text } : tweet
+  // );
   // return tweets; //return []
 }
 export async function remove(id) {
-  await getTweets().deleteOne({ _id: new MongoDB.ObjectId(id) });
+  return getTweets()
+    .deleteOne({ _id: new MongoDB.ObjectId(id) })
+    .then(console.log);
   // tweets = getAll().then((tweets) =>
   //   tweets.filter((tweet) => !(tweet.id === id))
   // );
-  return;
+}
+
+function mapUser(tweets) {
+  return tweets.map(mapOptionalUser);
+}
+function mapOptionalUser(tweet) {
+  return tweet ? { ...tweet, id: tweet._id.toString() } : tweet;
 }
