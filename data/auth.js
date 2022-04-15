@@ -1,15 +1,24 @@
-import { getUsers } from "../database/database.js";
-import MongoDB from "mongodb";
+import mongoose from "mongoose";
+import { getVirtualId } from "../database/database.js";
+
+const { Schema } = mongoose;
+const userSchema = new Schema({
+  username: { type: String, required: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  password: { type: String, required: true },
+  url: String,
+});
+
+getVirtualId(userSchema);
+
+const User = mongoose.model("Users", userSchema);
 
 export async function findByUsername(username) {
-  return getUsers()
-    .findOne({ username }) //
-    .then(mapOptionalUser);
+  return User.findOne({ username });
 }
 export async function findById(id) {
-  return getUsers()
-    .findOne({ _id: new MongoDB.ObjectId(id) }) //
-    .then(mapOptionalUser);
+  return User.findById(id);
 }
 export async function createUser(username, name, email, password, url) {
   const user = {
@@ -19,13 +28,5 @@ export async function createUser(username, name, email, password, url) {
     password,
     url,
   };
-  return getUsers()
-    .insertOne(user) //
-    .then((data) => {
-      return data.insertedId.toString();
-    });
-}
-
-function mapOptionalUser(user) {
-  return user ? { ...user, id: user._id.toString() } : user;
+  return new User(user).save().then((data) => data.id);
 }

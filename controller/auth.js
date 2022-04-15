@@ -22,7 +22,9 @@ export async function signup(req, res, next) {
   if (!(username && name && email && password)) {
     return res.status(401).json({ msg: "invalid inputs" });
   }
+
   const isDuplicated = await authRepository.findByUsername(username);
+
   if (isDuplicated)
     return res.status(401).json({ msg: `USERNAME ${username} is exists` });
 
@@ -36,7 +38,6 @@ export async function signup(req, res, next) {
     url
   );
   const token = createToken(userId);
-
   res.status(201).json({ username, token });
 }
 export async function login(req, res, next) {
