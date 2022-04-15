@@ -15,7 +15,7 @@ getVirtualId(userSchema);
 const User = mongoose.model("Users", userSchema);
 
 export async function findByUsername(username) {
-  return User.findOne({ username });
+  return User.find({ username });
 }
 export async function findById(id) {
   return User.findById(id);

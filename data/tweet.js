@@ -1,54 +1,45 @@
+import mongoose from "mongoose";
 import * as authRepository from "../data/auth.js";
-import { getTweets } from "../database/database.js";
-import MongoDB from "mongodb";
+import { getVirtualId } from "../database/database.js";
+
+const tweetSchema = new mongoose.Schema(
+  {
+    text: { type: String, required: true },
+    username: { type: String, required: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    url: String,
+  },
+  { timestamps: true }
+);
+
+getVirtualId(tweetSchema);
+
+const Tweet = mongoose.model("Tweets", tweetSchema);
 
 export async function getAll() {
-  return getTweets().find().sort({ createdAt: -1 }).toArray();
+  return Tweet.find({}).sort({ createdAt: -1 });
 }
 export async function getByUsername(username) {
-  return getTweets()
-    .find({ username })
-    .sort({ createdAt: -1 })
-    .toArray()
-    .then(mapUser);
+  return Tweet.find({ username }).sort({ createdAt: -1 });
 }
 export async function getById(id) {
-  return getTweets()
-    .findOne({ _id: new MongoDB.ObjectId(id) })
-    .then(mapOptionalUser);
+  return Tweet.findById(id);
 }
 export async function create(userId, text) {
   const { username, name, email, url } = await authRepository.findById(userId);
-  const user = {
+  const tweet = {
     text,
     username,
     name,
     email,
     url,
-    createdAt: new Date(),
   };
-  return getTweets()
-    .insertOne(user)
-    .then((data) => getById(data.insertedId.toString()));
+  return new Tweet(tweet).save().then((data) => getById(data.id));
 }
 export async function update(id, text) {
-  return getTweets()
-    .findOneAndUpdate(
-      { _id: new MongoDB.ObjectId(id) },
-      { $set: { text } },
-      { returnDocument: "after" }
-    )
-    .then((data) => mapOptionalUser(data.value));
+  return Tweet.findOneAndUpdate({ id }, { text }, { returnDocument: "after" });
 }
 export async function remove(id) {
-  return getTweets()
-    .deleteOne({ _id: new MongoDB.ObjectId(id) })
-    .then(console.log);
-}
-
-function mapUser(tweets) {
-  return tweets.map(mapOptionalUser);
-}
-function mapOptionalUser(tweet) {
-  return tweet ? { ...tweet, id: tweet._id.toString() } : tweet;
+  return Tweet.findOneAndDelete({ id });
 }
